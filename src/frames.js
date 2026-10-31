@@ -4,7 +4,7 @@
 //   --every  seconds between frames (default 1)
 //   --at     specific times in seconds
 //   --steps  one frame at the end of each step, from <video>.steps.json
-//   --width  frame width in px (default 1600, half the recorded size)
+//   --width  frame width in px (default 1600, half the recorded size, or the video's own if narrower)
 
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
@@ -23,7 +23,7 @@ if (!video || !fs.existsSync(video)) {
   process.exit(1);
 }
 
-const width = Number(option("width") ?? 1600);
+const width = option("width") ? Number(option("width")) : "min(1600,iw)";
 const duration = Number(
   execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", video]).toString(),
 );
@@ -50,7 +50,7 @@ fs.mkdirSync(dir, { recursive: true });
 
 const files = times.map((t, i) => {
   const file = path.join(dir, `${String(i + 1).padStart(3, "0")}-${t.toFixed(2)}s.png`);
-  execFileSync("ffmpeg", ["-v", "error", "-ss", String(t), "-i", video, "-frames:v", "1", "-vf", `scale=${width}:-1`, file]);
+  execFileSync("ffmpeg", ["-v", "error", "-ss", String(t), "-i", video, "-frames:v", "1", "-vf", `scale='${width}':-1`, file]);
   return file;
 });
 

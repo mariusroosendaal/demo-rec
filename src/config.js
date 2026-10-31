@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 // The tool itself: its assets (cursors)
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -28,6 +28,13 @@ export const PROFILE_DIR = path.join(CACHE_DIR, "profile");
 /** The demo a video in output/<demo>/ belongs to */
 export const demoOf = (video) => path.basename(path.dirname(path.resolve(video)));
 
+/** The viewport a demo's takes were recorded at: its scenario's `viewport`, or the default */
+export async function viewportOf(video) {
+  const file = path.join(SCENARIO_DIR, `${demoOf(video)}.js`);
+  const scenario = fs.existsSync(file) ? (await import(pathToFileURL(file))).default : {};
+  return scenario.viewport ?? VIEWPORT;
+}
+
 /** A video argument: a file, or a demo's name (or folder) for the first of `files` in it */
 export function videoArg(arg, files = ["take.mp4"]) {
   if (!arg || (fs.existsSync(arg) && fs.statSync(arg).isFile())) return arg;
@@ -35,8 +42,8 @@ export function videoArg(arg, files = ["take.mp4"]) {
   return files.map((f) => path.join(dir, f)).find((f) => fs.existsSync(f)) ?? arg;
 }
 
-// Fixed so every take has the same layout: 1600×900 CSS px at 2× → 3200×1800 video,
-// the same size as the old screen recordings.
+// The page's size in CSS px unless a scenario sets `viewport`: 1600×900 at 2× → 3200×1800
+// video, the same size as the old screen recordings.
 export const VIEWPORT = { width: 1600, height: 900 };
 export const SCALE = 2;
 export const FPS = 60;

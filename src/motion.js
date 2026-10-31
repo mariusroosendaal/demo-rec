@@ -1,15 +1,12 @@
 // Cursor movement and clicks. Timing comes from distance, not from the scenario.
 
-import { VIEWPORT } from "./config.js";
-
 export const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** Where the drawn cursor is. */
 export const cursorPos = (page) => page.evaluate(() => window.__demoCursor.pos());
 
-/** Just past the screen edge nearest to `p`. */
-export function nearestExit(p, overshoot = 40) {
-  const { width, height } = VIEWPORT;
+/** Just past the edge of the `viewport` ({ width, height }) nearest to `p`. */
+export function nearestExit(p, { width, height }, overshoot = 40) {
   const exits = [
     { d: p.x, to: [-overshoot, p.y] },
     { d: width - p.x, to: [width + overshoot, p.y] },

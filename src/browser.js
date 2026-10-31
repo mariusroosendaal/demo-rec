@@ -2,12 +2,12 @@ import { chromium } from "playwright";
 import { PROFILE_DIR, SCALE, VIEWPORT, headless } from "./config.js";
 import { cursorAssets, cursorScript } from "./cursor.js";
 
-export async function launch({ scale = SCALE, cursors } = {}) {
+export async function launch({ viewport = VIEWPORT, scale = SCALE, cursors } = {}) {
   const context = await chromium.launchPersistentContext(PROFILE_DIR, {
     // Headless, the full browser (the "chromium" channel) rather than the headless shell, so
     // pages render as they do headed
     ...(headless() ? { headless: true, channel: "chromium" } : { headless: false }),
-    viewport: VIEWPORT,
+    viewport,
     deviceScaleFactor: scale,
     // Apps that follow the system theme start light; scenarios can switch it (see cli.js)
     colorScheme: "light",

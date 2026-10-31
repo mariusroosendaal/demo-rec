@@ -7,8 +7,8 @@ description: Write, record and narrate a product demo video with recital, a scen
 
 A demo is a scenario, `scenarios/<demo>.js` in a workspace (a folder with `scenarios/`): the
 page to open, the steps to take, and the lines to say. recital records it in Chromium at
-3200×1800 and 60 fps, waits for each line before the step it belongs to, and makes the final
-video with burned-in captions.
+3200×1800 (a 1600×900 page at 2×; `viewport` and `scale` change it) and 60 fps, waits for
+each line before the step it belongs to, and makes the final video with burned-in captions.
 
 ## References
 
@@ -77,7 +77,7 @@ work around the sandbox.
    that ran without errors can still show the wrong thing.
 
 6. **Zoom, if it helps.** Small UI reads better closer. Add `camera` framings
-   (`{ at: "<label>", center: [x, y], zoom: 1.5 }`, viewport px of 1600×900, and
+   (`{ at: "<label>", center: [x, y], zoom: 1.5 }`, CSS px of the viewport, 1600×900 by default, and
    `{ at: "<label>", zoom: 1 }` to ease back out), run `npx recital camera <demo>`, and check
    `npx recital frames output/<demo>/camera.mp4 --steps`. Up to 1.67× stays sharp.
 

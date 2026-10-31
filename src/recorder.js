@@ -4,7 +4,7 @@
 import { spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { FPS, SCALE, VIEWPORT } from "./config.js";
+import { FPS, SCALE } from "./config.js";
 
 export class Recorder {
   constructor(page, workDir, scale = SCALE) {
@@ -58,11 +58,12 @@ export class Recorder {
       this.onFirstFrame?.(metadata.timestamp - this.offset - this.startedAt / 1000);
       this.onFirstFrame = null;
     });
+    const { width, height } = this.page.viewportSize();
     await this.cdp.send("Page.startScreencast", {
       format: "jpeg",
       quality: 95,
-      maxWidth: Math.round(VIEWPORT.width * this.scale),
-      maxHeight: Math.round(VIEWPORT.height * this.scale),
+      maxWidth: Math.round(width * this.scale),
+      maxHeight: Math.round(height * this.scale),
     });
   }
 
@@ -170,8 +171,9 @@ export async function encode(frames, stoppedAt, outFile) {
 }
 
 /**
- * A copy phones can play, next to the take as `take-phone.mp4`: 1600 px wide at H.264
- * level 4.2. A 3200×1800 take at 60 fps needs level 6, which iPhones don't decode.
+ * A copy phones can play, next to the take as `take-phone.mp4`: at most 1600×900 px of
+ * picture (1600 wide at the default viewport) at H.264 level 4.2. A 3200×1800 take at 60 fps
+ * needs level 6, which iPhones don't decode.
  */
 export async function encodePhone(outFile) {
   const phoneFile = outFile.replace(/\.mp4$/, "-phone.mp4");
@@ -179,7 +181,7 @@ export async function encodePhone(outFile) {
     "ffmpeg",
     [
       "-v", "error", "-y", "-i", outFile,
-      "-vf", "scale=1600:-2:flags=lanczos",
+      "-vf", "scale='2*trunc(iw*min(1,sqrt(1440000/(iw*ih)))/2)':-2:flags=lanczos",
       "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-tune", "animation",
       "-profile:v", "high", "-level", "4.2", "-pix_fmt", "yuv420p",
       "-movflags", "+faststart", phoneFile,

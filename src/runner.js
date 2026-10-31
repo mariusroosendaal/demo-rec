@@ -14,7 +14,6 @@
 // wait to keep in the video), when / unless (a target that must / must not be visible for
 // the step to run at all), label.
 
-import { VIEWPORT } from "./config.js";
 import { cursorFor } from "./cursor.js";
 import { clickAt, cursorPos, moveCursor, sleep } from "./motion.js";
 import { closest } from "./similar.js";
@@ -249,7 +248,7 @@ const actions = {
       stops = [from + target];
     } else {
       const box = await (await visible(await locate(ctx, target), ctx.page)).boundingBox();
-      stops = [from + box.y + box.height / 2 - VIEWPORT.height * (step.to ?? 0.5)];
+      stops = [from + box.y + box.height / 2 - ctx.page.viewportSize().height * (step.to ?? 0.5)];
     }
     const counts = [step.flicks].flat();
     let at = from;

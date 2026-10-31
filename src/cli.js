@@ -6,7 +6,7 @@
 //   --debug      log per-move cursor frame rates
 //   --keep-open  leave the browser open afterwards (close the window to exit)
 //   --out <file> output path
-//   --scale <n>  device pixel ratio (default 2: 3200×1800 video; 1.2 gives 1920×1080)
+//   --scale <n>  device pixel ratio (default 2: 3200×1800 video at the default viewport; 1.2 gives 1920×1080)
 //   --cursors <set>  another cursor set than the scenario's, to compare (see cursor.js)
 //   --headless   no browser window (RECITAL_HEADLESS=1; the default on Linux with no display)
 //   --inspect <file.js>  after setup, run the file's default export (page, ctx) instead of the steps
@@ -90,7 +90,7 @@ const outFile = path.resolve(option("out") ?? path.join(OUTPUT_DIR, command, "ta
 fs.mkdirSync(path.dirname(outFile), { recursive: true });
 
 const scale = Number(option("scale") ?? scenario.scale ?? SCALE);
-const { context, page } = await launch({ scale, cursors: option("cursors") ?? scenario.cursors ?? adapter?.cursors });
+const { context, page } = await launch({ viewport: scenario.viewport, scale, cursors: option("cursors") ?? scenario.cursors ?? adapter?.cursors });
 await adapter?.prepare?.(context);
 const inspect = option("inspect");
 let recorder = null;

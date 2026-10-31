@@ -82,7 +82,7 @@ Or `npx recital skill` copies it into the workspace's `.claude/skills/`. Then as
 | `demo <demo>` | Records `output/<demo>/take.mp4`, with `take.steps.json` and a 1600 px `take-phone.mp4`. `--dry` runs without recording, `--headless` without a window (the default on Linux with no display), `--keep-open`, `--scale`, `--cursors <set>`, `--inspect <probe>` runs a script on the page after setup. |
 | `demo login <url \| demo \| adapter>` | Opens the browser to log in once, at a URL, a scenario's page or an adapter's login (`figma`); the profile is kept. |
 | `validate [<demo> ...]` | Checks scenarios without a browser. |
-| `camera <demo>` | A 1920×1080 version that zooms in, from the scenario's `camera`. |
+| `camera <demo>` | A version that zooms in, from the scenario's `camera`: 1.2× the viewport, 1920×1080 by default. |
 | `narrate <demo>` | Mixes in the narration, with subtitles. |
 | `clips <demo>` | A clip per part (labels sharing a word before ` · `). `--gif`, `--crop`, `--speed`, `--width`. |
 | `frames <demo>` | PNG frames and a contact sheet: `--every 1`, `--at 1.5,3.2`, `--steps`. |
@@ -99,7 +99,8 @@ Any command takes `-w <path>` to work on a workspace from elsewhere.
 | `url` | The page the take starts on. |
 | `setup`, `steps`, `teardown` | Before the take (not recorded), the take, after it. |
 | `theme` | `"light"` (default) or `"dark"`. |
-| `scale` | Pixel ratio: 2 (default) is 3200×1800, 1.2 is 1920×1080. |
+| `viewport` | The page's size in CSS px: `{ width: 1600, height: 900 }` (default). `{ width: 390, height: 844 }` records a phone-sized page, in portrait. |
+| `scale` | Pixel ratio: 2 (default) is 3200×1800 at the default viewport, 1.2 is 1920×1080. |
 | `speed`, `pauses` | `speed: 1.25` speeds up moves and holds; `pauses: 0.5` halves only the holds. |
 | `leadIn`, `tail` | ms before the first step and after the last (800, 1500). |
 | `routes` | `{ "<url glob>": "<file>" }`: requests answered from local files. |
@@ -118,7 +119,7 @@ camera and clips to refer to.
 | Target | Finds |
 |---|---|
 | `{ ui: "<selector>" }` | A Playwright selector, such as `role=button[name='Save']`. |
-| `{ point: [x, y] }` | A point in the 1600×900 viewport. |
+| `{ point: [x, y] }` | A point in the viewport, in CSS px. |
 
 `at: [0.5, 0.1]` picks a point in the target's box, `offset: [x, y]` adds px, `cursor` sets
 the cursor's shape, and `frame: "<iframe selector>"` looks the target up in that iframe. An

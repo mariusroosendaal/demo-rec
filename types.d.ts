@@ -7,7 +7,7 @@
 // as `in: "editor"`, are suggested but any string fits, so steps shared between scenarios,
 // where TypeScript widens them to strings, still check.
 
-/** `[x, y]`: CSS px of the 1600×900 viewport, or fractions of a box (an array, so pairs built in helpers fit too) */
+/** `[x, y]`: CSS px of the viewport (1600×900 unless `viewport` sets it), or fractions of a box (an array, so pairs built in helpers fit too) */
 export type Point = number[];
 
 declare global {
@@ -33,7 +33,7 @@ interface TargetOptions {
 export interface UiTarget extends TargetOptions {
   ui: string;
 }
-/** A point, in CSS px of the 1600×900 viewport */
+/** A point, in CSS px of the viewport */
 export interface PointTarget extends TargetOptions {
   point: Point;
 }
@@ -245,7 +245,7 @@ export interface Narrator {
 export interface CameraShot {
   /** The label of the step the framing starts at */
   at: string;
-  /** The point to centre, in CSS px of the 1600×900 viewport */
+  /** The point to centre, in CSS px of the viewport */
   center?: Point;
   /** 1 is the whole frame; up to 1.67 stays sharp */
   zoom?: number;
@@ -269,7 +269,9 @@ export interface Scenario {
   /** Steps after the take, not recorded */
   teardown?: Step[];
   theme?: "light" | "dark" | (string & {});
-  /** Pixel ratio: 2 (default) records 3200×1800; 1.2 records 1920×1080 */
+  /** The page's size in CSS px: 1600×900 (default); `{ width: 390, height: 844 }` for a phone */
+  viewport?: { width: number; height: number };
+  /** Pixel ratio: 2 (default) records the viewport at twice its size, 3200×1800; 1.2 records 1920×1080 */
   scale?: number;
   /** Makes every move and hold faster (1.25) */
   speed?: number;

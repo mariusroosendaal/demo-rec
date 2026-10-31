@@ -3,7 +3,7 @@
 // the same word before " · " ("add · name", "add · url") make one part, "add". A demo's name
 // means its take. Writes clips/<video name>-<part>.mp4 beside the video, e.g.
 // clips/camera-add.mp4 (H.264 level 4.2, plays on phones), or GIFs with --gif.
-//   --crop   a region in CSS px (the take is 1600 × 900 CSS px), e.g. the plugin window
+//   --crop   a region in CSS px (1600 × 900 unless the scenario sets a viewport), e.g. the plugin window
 //   --speed  plays a part faster: map=1.5
 //   --parts  only these parts, e.g. to crop some and not others
 //   --whole  the whole take as one clip, clips/<video name>.mp4/.gif, when it is one guide section
@@ -13,7 +13,7 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { VIEWPORT, videoArg } from "./config.js";
+import { videoArg, viewportOf } from "./config.js";
 
 const args = process.argv.slice(2);
 const option = (name) => {
@@ -39,7 +39,7 @@ const duration = Number(
 const videoWidth = Number(
   execFileSync("ffprobe", ["-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width", "-of", "csv=p=0", video]).toString(),
 );
-const scale = videoWidth / VIEWPORT.width;
+const scale = videoWidth / (await viewportOf(video)).width;
 
 // Consecutive steps with the same label prefix; a part runs until the next one starts
 const log = JSON.parse(fs.readFileSync(video.replace(/\.mp4$/, ".steps.json"), "utf8"));

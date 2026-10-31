@@ -14,7 +14,7 @@ import { suggest } from "./similar.js";
 
 // An adapter adds its own, such as Figma's `file` and `plugin`
 const SCENARIO_KEYS = [
-  "url", "adapter", "setup", "steps", "teardown", "theme", "scale", "speed", "pauses",
+  "url", "adapter", "setup", "steps", "teardown", "theme", "viewport", "scale", "speed", "pauses",
   "routes", "tabs", "leadIn", "tail", "narration", "narrator", "voice", "camera", "final", "cursors",
 ];
 // Options any step may have, and those some action reads; an adapter adds its actions' own
@@ -41,6 +41,8 @@ export function validate(scenario) {
   const hints = [...new Set([...keys, ...ADAPTERS.flatMap((a) => a.keys ?? [])])];
   for (const key of Object.keys(scenario)) if (!keys.includes(key)) problems.push(`unknown scenario key "${key}"${suggest(key, hints)}`);
   if (!scenario.url && !adapter?.url?.(scenario)) problems.push(`no url${adapter ? `, or what the ${adapter.name ?? "scenario's"} adapter opens` : ""}`);
+  const { viewport } = scenario;
+  if (viewport && !(viewport.width > 0 && viewport.height > 0)) problems.push("viewport needs a width and a height in CSS px, like { width: 390, height: 844 }");
   if (scenario.cursors && !CURSOR_SETS.includes(scenario.cursors)) problems.push(`no cursor set "${scenario.cursors}"${suggest(scenario.cursors, CURSOR_SETS)}; there are ${CURSOR_SETS.join(", ")}`);
 
   const actions = actionNames(adapter);

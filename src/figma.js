@@ -2,7 +2,7 @@
 // the plugin iframe, and launching a plugin. `adapter` at the end puts them in a scenario's
 // reach: a scenario with `file` (a Figma URL) uses it.
 
-import { FPS, VIEWPORT } from "./config.js";
+import { FPS } from "./config.js";
 import { clickAt, cursorPos, moveCursor, nearestExit, sleep } from "./motion.js";
 
 export function parseFileUrl(url) {
@@ -527,14 +527,15 @@ export const adapter = {
 
       // Get the cursor out of the shot first, so nothing under it highlights while zooming
       if (step.animate && step.park !== false) {
-        const exit = step.park ?? nearestExit(await cursorPos(ctx.page));
+        const viewport = ctx.page.viewportSize();
+        const exit = step.park ?? nearestExit(await cursorPos(ctx.page), viewport);
         await moveCursor(ctx.page, { x: exit[0], y: exit[1] }, step);
         // The page only sees pointer positions inside it, so Figma keeps hit-testing at the last
         // one as the camera moves. Leave the (invisible) real pointer where nothing is before or
         // after the move.
         const inside = {
-          x: Math.min(Math.max(exit[0], 0), VIEWPORT.width),
-          y: Math.min(Math.max(exit[1], 0), VIEWPORT.height),
+          x: Math.min(Math.max(exit[0], 0), viewport.width),
+          y: Math.min(Math.max(exit[1], 0), viewport.height),
         };
         const rest = await emptyCanvasPoint(ctx.page, inside, { after: target, edge: 4 });
         if (rest) await ctx.page.mouse.move(rest.x, rest.y);

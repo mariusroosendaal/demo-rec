@@ -1,10 +1,10 @@
-// npm run camera -- <demo | video> [--width 1920] [--out file]
+// npm run camera -- <demo | video> [--width 1920] [--out file]   (width: 1.2× the viewport's)
 // A version of a take with a camera that zooms in on the action: the scenario's `camera`
 // lists framings, each from the start of a step on, and the camera eases between them.
 // The take is twice the output's CSS size, so zooming in up to 1.67× still downscales.
 //
 //   camera: [
-//     { at: "add · open the form", center: [1400, 470], zoom: 1.5 },  // CSS px, 1600 × 900
+//     { at: "add · open the form", center: [1400, 470], zoom: 1.5 },  // CSS px of the viewport
 //     { at: "apply · create copies", zoom: 1, ms: 1200 },             // the whole frame
 //   ]
 //
@@ -38,12 +38,13 @@ if (!scenario.camera?.length) {
   process.exit(1);
 }
 const log = JSON.parse(fs.readFileSync(video.replace(/\.mp4$/, ".steps.json"), "utf8"));
-const width = Number(option("width") ?? 1920);
-const height = Math.round((width * VIEWPORT.height) / VIEWPORT.width / 2) * 2;
+const viewport = scenario.viewport ?? VIEWPORT;
+const width = Number(option("width") ?? Math.round((viewport.width * 1.2) / 2) * 2);
+const height = Math.round((width * viewport.height) / viewport.width / 2) * 2;
 const out = option("out") ?? path.join(path.dirname(video), "camera.mp4");
 
 // The whole frame first, then each framing from its step's start
-const whole = { center: [VIEWPORT.width / 2, VIEWPORT.height / 2], zoom: 1 };
+const whole = { center: [viewport.width / 2, viewport.height / 2], zoom: 1 };
 const moves = scenario.camera.map((shot) => {
   const step = log.find((s) => s.label === shot.at);
   if (!step) throw new Error(`No step labelled "${shot.at}" in ${path.relative(process.cwd(), video.replace(/\.mp4$/, ".steps.json"))}`);
@@ -52,7 +53,7 @@ const moves = scenario.camera.map((shot) => {
   // still at the edge and crosses in a jump in the middle of the ease
   const inside = (c, size) => Math.min(Math.max(c, size / zoom / 2), size - size / zoom / 2);
   const [x, y] = shot.center ?? whole.center;
-  return { start: step.start, ms: shot.ms ?? 900, center: [inside(x, VIEWPORT.width), inside(y, VIEWPORT.height)], zoom };
+  return { start: step.start, ms: shot.ms ?? 900, center: [inside(x, viewport.width), inside(y, viewport.height)], zoom };
 });
 
 /** ffmpeg expression for a value over time `t`: held, then eased to each move's value */
@@ -81,7 +82,7 @@ const cy = track((s) => s.center[1], time);
 // Each frame scaled to the zoom, then a fixed window cut around the centre, kept inside
 const filter = [
   `scale=w='2*trunc(${width}*(${track((s) => s.zoom)})/2)':h='2*trunc(${height}*(${track((s) => s.zoom)})/2)':eval=frame:flags=lanczos`,
-  `crop=${width}:${height}:x='clip((${cx})*${scaledWidth}/${VIEWPORT.width}-${width / 2},0,${scaledWidth}-${width})':y='clip((${cy})*${scaledHeight}/${VIEWPORT.height}-${height / 2},0,${scaledHeight}-${height})'`,
+  `crop=${width}:${height}:x='clip((${cx})*${scaledWidth}/${viewport.width}-${width / 2},0,${scaledWidth}-${width})':y='clip((${cy})*${scaledHeight}/${viewport.height}-${height / 2},0,${scaledHeight}-${height})'`,
 ].join(",");
 
 // Cut from the take without dissolves, then dissolved here, so a dissolve never shows the
