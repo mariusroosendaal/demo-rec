@@ -1,0 +1,22 @@
+WEBVTT
+
+00:00:00.801 --> 00:00:05.435 line:88% position:50% align:center size:80%
+Start by adding a data source, with a name and the URL of your JSON.
+
+00:00:09.319 --> 00:00:12.825 line:88% position:50% align:center size:80%
+Next, select a component and click Create mapping.
+
+00:00:15.444 --> 00:00:20.296 line:88% position:50% align:center size:80%
+Click Link component, and link its properties to fields in your data.
+
+00:00:23.816 --> 00:00:27.479 line:88% position:50% align:center size:80%
+Add a binding to link a layer too, like the image.
+
+00:00:30.370 --> 00:00:32.783 line:88% position:50% align:center size:80%
+Then save the mapping and give it a name.
+
+00:00:35.900 --> 00:00:38.696 line:88% position:50% align:center size:80%
+In the mapping menu, choose how to apply the data.
+
+00:00:40.612 --> 00:00:45.213 line:88% position:50% align:center size:80%
+Finally, click Create copies, and every record gets a filled copy.

@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>recital: recite and record demo videos from a script</title>
+<meta name="description" content="Narrated demo videos of anything in a browser, from a script, with Figma plugins built in. Open source, MIT.">
+<link rel="canonical" href="https://mariusroosendaal.github.io/recital/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="recital">
+<meta property="og:url" content="https://mariusroosendaal.github.io/recital/">
+<meta property="og:title" content="recital: recite and record demo videos from a script">
+<meta property="og:description" content="Narrated demo videos of anything in a browser, from a script.">
+<meta property="og:image" content="https://mariusroosendaal.github.io/recital/share.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="recital">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "recital",
+  "description": "Narrated demo videos of anything in a browser, from a script, with Figma plugins built in.",
+  "url": "https://mariusroosendaal.github.io/recital/",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "macOS, Linux",
+  "license": "https://opensource.org/licenses/MIT",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "sameAs": ["https://github.com/mariusroosendaal/recital", "https://www.npmjs.com/package/recitaljs"]
+}
+</script>
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171414" media="(prefers-color-scheme: dark)">
+<link rel="preload" href="fonts/Switzer-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/IBMPlexMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  /* ==== Tokens ====
+     Everything the page is built from. Fluid values give the size at 375px wide, then at
+     1440px, and keep growing past it with no cap. */
+  :root {
+    /* Color */
+    /* Carbon's warm gray scale: White and Warm Gray 10, 20, 70, 100 */
+    --bg: #ffffff;
+    --surface: #f7f3f2;
+    --fg: #171414;
+    --muted: #565151;
+    --line: #e5e0df;
+    --active: #f0e8e6;
+    --stage: #e5e0df;  /* Warm Gray 20, behind the videos */
+    --accent: #da1e28;  /* Carbon Red 60, a recording light: used only sparingly */
+    /* A take's timeline fills with Red 60, under white labels, in both themes */
+    --on-accent: #ffffff;
+    --red: #da1e28;
+    --overlay: rgb(23 20 20 / 0.56);
+    /* Code, like GitHub's theme in Carbon colors: Red 60, Blue 70, Red 60, Warm Gray 70 */
+    --keyword: #da1e28;
+    --string: #0043ce;
+    --number: #da1e28;
+    --property: #565151;
+    --comment: #696363;
+    color-scheme: light;
+
+    /* Type */
+    --sans: "Switzer", ui-sans-serif, system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --fs-code: max(12px, 10.94px + 0.282vw);  /* 12 → 15 */
+    --fs-body: max(16px, 15.3px + 0.188vw);   /* 16 → 18 */
+    --fs-lg: max(20px, 17.89px + 0.563vw);    /* 20 → 26 */
+    --fs-h1: max(42px, 31.4px + 2.82vw);      /* 42 → 72 */
+
+    /* Space */
+    --space-2xs: max(4px, 3.3px + 0.188vw);   /* 4 → 6 */
+    --space-xs: max(12px, 10.6px + 0.376vw);  /* 12 → 16 */
+    --space-s: max(16px, 13.18px + 0.751vw);  /* 16 → 24 */
+    --space-m: max(16px, 10.37px + 1.502vw);  /* 16 → 32: the page's side padding and the cells' */
+    --space-l: max(48px, 42.37px + 1.502vw);  /* 48 → 64: the install button and the pictograms */
+    --space-xl: max(48px, 31.1px + 4.507vw);  /* 48 → 96 */
+    --space-2xl: max(64px, 41.46px + 6.009vw); /* 64 → 128 */
+    --space-3xl: max(96px, 73.46px + 6.009vw); /* 96 → 160 */
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      /* Warm Gray 100, 90, 80, 30 and 10 */
+      --bg: #171414;
+      --surface: #272525;
+      --fg: #f7f3f2;
+      --muted: #ada8a8;
+      --line: #3c3838;
+      --active: #343232;
+      --stage: #171414;
+      --accent: #fa4d56;  /* Red 50 */
+      --keyword: #ff8389;  /* Red 40, Blue 30, Red 40, Warm Gray 30 */
+      --string: #a6c8ff;
+      --number: #ff8389;
+      --property: #cac5c4;
+      --comment: #8f8b8b;
+      color-scheme: dark;
+    }
+  }
+
+  /* ==== Fonts ====
+     Switzer, variable, from Fontshare (ITF Free Font License); IBM Plex Mono, Latin, from
+     Fontsource (SIL OFL 1.1, fonts/IBMPlexMono-OFL.txt) */
+  @font-face { font-family: "Switzer"; src: url("fonts/Switzer-Variable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+  @font-face { font-family: "IBM Plex Mono"; src: url("fonts/IBMPlexMono-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+
+  /* ==== Base ==== */
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: var(--fs-body)/1.4 var(--sans);
+    letter-spacing: -0.0143em;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-underline-offset: 0.15em; text-decoration-thickness: 1px; }
+  :focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+  code, pre, kbd { font-family: var(--mono); letter-spacing: 0; }
+  /* Code in running text keeps the text's size: Plex Mono's x-height is close to Switzer's */
+  :not(pre) > code { font-size: 1em; }
+  .lg { font-size: var(--fs-lg); line-height: 1.2; letter-spacing: -0.01em; }
+  .pad { padding-left: var(--space-m); padding-right: var(--space-m); }
+
+  /* Bar */
+  .bar { display: flex; align-items: center; justify-content: space-between; padding-top: var(--space-s); padding-bottom: var(--space-s); }
+  .bar a { text-decoration: none; }
+
+  /* The title over its text, centered: the intro and each section's head */
+  .head { display: flex; flex-direction: column; align-items: center; gap: var(--space-m); text-align: center; }
+  h1, h2 {
+    margin: 0;
+    font: 300 var(--fs-h1)/1 var(--sans);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  .head p { max-width: 27em; margin: 0; text-wrap: balance; }
+  .intro { padding-top: var(--space-xl); }
+  .intro > div { display: flex; flex-direction: column; align-items: center; gap: var(--space-m); }
+  .actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-xs); }
+  .actions a { display: inline-flex; align-items: center; height: var(--space-l); padding: 0 var(--space-s); color: var(--accent); text-decoration: none; }
+
+  /* The install command, a button that copies it: the label gives way to "Copied" */
+  .install {
+    display: inline-grid; align-items: center; height: var(--space-l); padding: 0 var(--space-s);
+    border: 0; background: var(--fg); color: var(--bg); font: inherit; letter-spacing: inherit; cursor: pointer;
+    transition: opacity 120ms, transform 120ms;
+  }
+  .install > span { grid-area: 1 / 1; white-space: nowrap; transition: opacity 150ms, transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .install .done { opacity: 0; transform: translateY(0.3em); }
+  .install.copied .cmd { opacity: 0; transform: translateY(-0.3em); }
+  .install.copied .done { opacity: 1; transform: none; }
+  .install:active { transform: scale(0.97); }
+
+  /* Sections */
+  section { padding-top: var(--space-3xl); }
+  .intro + section { padding-top: 0; }
+  /* A table of cells, edge to edge: the 1px gap shows the background as the lines between them */
+  .grid {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px;
+    margin: var(--space-xl) 0 0; border-block: 1px solid var(--line); background: var(--line);
+  }
+  .grid > * { min-width: 0; background: var(--bg); }
+
+  /* The scenario beside the take it recorded */
+  /* The code on 5 of 12 columns, the take on 7 */
+  .split { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+  .split > * { background: var(--surface); }
+  .file { display: flex; flex-direction: column; }
+  pre.code {
+    flex: 1; margin: 0; padding: var(--space-m) 0; overflow-x: auto;
+    font-size: var(--fs-code); line-height: 1.3; color: var(--fg);
+  }
+  .code .ln { display: block; padding: 0 var(--space-m); white-space: pre; }
+  .code .step { display: block; border-left: 2px solid transparent; cursor: pointer; transition: background 160ms, border-color 160ms; }
+  .code .step .ln { padding-left: calc(var(--space-m) - 2px); }
+  .code .step.on { background: var(--active); border-left-color: var(--red); }
+  .code .k { color: var(--keyword); }
+  .code .s { color: var(--string); }
+  .code .n { color: var(--number); }
+  .code .pr { color: var(--property); }
+  .code .c { color: var(--comment); }
+
+  /* The screen takes the height the code leaves, so the timeline sits at the bottom; the
+     video, its captions and controls stay together in its middle */
+  .player { display: flex; flex-direction: column; }
+  .screen { flex: 1; display: flex; flex-direction: column; justify-content: center; background: var(--stage); }
+  .player video { display: block; width: 100%; aspect-ratio: 16 / 9; background: var(--active); }
+  /* The take's .vtt, drawn like its burned-in captions (narration.js), in Switzer:
+     sized to the video's width, 6% up from the bottom, on a translucent rounded box */
+  .frame { position: relative; container-type: inline-size; }
+  .cc {
+    position: absolute; left: 0; right: 0; bottom: 6%; margin: 0;
+    display: flex; justify-content: center; pointer-events: none;
+  }
+  .cc[hidden] { display: none; }
+  .cc span {
+    max-width: 80%; padding: 0.03em 0.3em; border-radius: 0.235em;
+    background: rgb(39 37 37 / 0.6); color: #fff;
+    font: 450 max(11px, 1.72cqw)/normal var(--sans); letter-spacing: 0.025em; text-align: center;
+    white-space: pre-line; text-wrap: balance; -webkit-font-smoothing: auto;
+  }
+  /* The steps, as wide as they last: each fills with red as it plays, and its
+     label turns white where the fill has reached */
+  .timeline { display: flex; border-top: 1px solid var(--line); }
+  .seg {
+    position: relative; isolation: isolate; flex: var(--w); min-width: 0;
+    padding: 0; border: 0; border-right: 1px solid var(--line); background: none;
+    font: inherit; letter-spacing: inherit; text-align: left; cursor: pointer;
+  }
+  .seg:last-child { border-right: 0; }
+  .seg::before {
+    content: ""; position: absolute; inset: 0; z-index: -1;
+    background: var(--red); transform: scaleX(var(--p, 0)); transform-origin: left;
+  }
+  .seg span {
+    display: block; padding: var(--space-s) var(--space-2xs) var(--space-2xs) 0.5rem;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    color: transparent; -webkit-background-clip: text; background-clip: text;
+    background-image: linear-gradient(90deg, var(--on-accent) calc(var(--p, 0) * 100%), var(--fg) 0);
+  }
+  /* Play/pause and sound, over the video's bottom right */
+  .ctls { position: absolute; right: 20px; bottom: 20px; display: flex; gap: 4px; }
+  .ctl {
+    display: grid; place-items: center; width: 24px; height: 24px;
+    padding: 0; border: 0; background: var(--overlay); color: #fff; cursor: pointer;
+    -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+    transition: background 160ms, transform 120ms;
+  }
+  .ctl:active { transform: scale(0.88); }
+  .ctl:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .ctl svg { width: 16px; height: 16px; animation: pop 250ms cubic-bezier(0.34, 1.56, 0.64, 1); }  /* px: the 16px glyphs sit on whole pixels */
+  @keyframes pop { from { opacity: 0; transform: scale(0.5); } }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+  /* What a take gets */
+  .facts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .facts div { padding: var(--space-m); }
+  .facts svg { display: block; width: var(--space-l); height: var(--space-l); margin-bottom: var(--space-xs); }
+  .facts dd { margin: var(--space-2xs) 0 0; color: var(--muted); text-wrap: balance; }
+
+  .start > * { padding: var(--space-m); }
+  .term {
+    margin: 0; background: var(--surface); overflow-x: auto;
+    font-size: var(--fs-code); line-height: 1.3;
+  }
+  .term .p, .term .c { color: var(--comment); }
+  .term .p { user-select: none; }
+  .start p { margin: 0; }
+
+  /* A line under a take */
+  .note { margin: var(--space-xs) 0 0; color: var(--muted); text-wrap: balance; }
+
+  footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 var(--space-m); padding-top: var(--space-2xl); padding-bottom: var(--space-s); }
+  footer a { text-decoration: none; }
+
+  /* Slide in on scroll: the script adds .reveal, then .in once on screen, and sets --spring
+     to a spring curve where linear() works */
+  .reveal { opacity: 0; transform: translateY(1.5rem); }
+  .reveal.in {
+    opacity: 1; transform: none;
+    transition: opacity 500ms ease-out, transform var(--spring-ms, 800ms) var(--spring, cubic-bezier(0.2, 0.8, 0.2, 1));
+    transition-delay: var(--delay, 0ms);
+  }
+
+  @media (max-width: 860px) {
+    .split, .start { grid-template-columns: 1fr; }
+    .file { order: 2; }
+    .facts { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 560px) {
+    .facts { grid-template-columns: 1fr; }
+  }
+  /* Hover, only where a pointer hovers: on touch it would stay on after a tap */
+  @media (hover: hover) {
+    a:hover { text-decoration: underline; }
+    .actions a:hover { text-decoration: underline; }
+    .install:hover { opacity: 0.85; }
+    .code .step:hover { background: var(--active); }
+    .seg:hover span { text-decoration: underline; text-decoration-color: var(--fg); }
+    .ctl:hover { background: rgb(23 20 20 / 0.75); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="bar pad lg">
+  <a href="./" aria-label="recital home">recital</a>
+  <a href="https://github.com/mariusroosendaal/recital">github</a>
+</header>
+
+<main>
+  <div class="intro head pad">
+    <h1>Script your demos</h1>
+    <div>
+      <p class="lg">Write what to click and what to say. recital drives the browser with a calm cursor, records at 60 fps and paces each step to the voice. When the product changes, record it again.</p>
+      <div class="actions lg">
+        <button type="button" class="install" id="copy" aria-label="Copy the install command, npm i -D recitaljs">
+          <span class="cmd">$ npm i -D recitaljs</span>
+          <span class="done" aria-hidden="true">Copied</span>
+        </button>
+        <span class="sr" role="status" id="copied"></span>
+        <a href="https://github.com/mariusroosendaal/recital#readme">Read the docs</a>
+      </div>
+    </div>
+  </div>
+
+  <section>
+    <div class="grid split" id="demo" data-take="rijksmuseum">
+      <div class="file">
+<pre class="code" tabindex="0"><code><span class="ln"><span class="k">export default</span> {</span><span class="ln">  <span class="pr">url</span>: <span class="s">"https://www.rijksmuseum.nl/en/collection"</span>,</span><span class="ln">  <span class="pr">speed</span>: <span class="n">1.25</span>,</span><span class="ln">  <span class="pr">cursors</span>: <span class="s">"macos"</span>,</span><span class="ln">  <span class="pr">camera</span>: [</span><span class="ln">    { <span class="pr">at</span>: <span class="s">"search"</span>, <span class="pr">center</span>: [<span class="n">600</span>, <span class="n">720</span>], <span class="pr">zoom</span>: <span class="n">1.5</span> },</span><span class="ln">    { <span class="pr">at</span>: <span class="s">"results"</span>, <span class="pr">zoom</span>: <span class="n">1</span>, <span class="pr">ms</span>: <span class="n">1000</span> },</span><span class="ln">  ],</span><span class="ln">  <span class="pr">steps</span>: [</span><span class="step" data-step="0"><span class="ln">    { <span class="pr">type</span>: <span class="s">"Night Watch"</span>, <span class="pr">label</span>: <span class="s">"search"</span>,</span><span class="ln">      <span class="pr">into</span>: { <span class="pr">ui</span>: <span class="s">"#search-input"</span> } },</span></span><span class="step" data-step="1"><span class="ln">    { <span class="pr">press</span>: <span class="s">"Enter"</span>, <span class="pr">label</span>: <span class="s">"results"</span>,</span><span class="ln">      <span class="pr">waitFor</span>: { <span class="pr">ui</span>: <span class="s">".art-grid-item-link"</span> } },</span></span><span class="step" data-step="2"><span class="ln">    <span class="c">// A slow page: keep 0.6 s of the wait</span></span><span class="ln">    { <span class="pr">click</span>: { <span class="pr">ui</span>: <span class="s">".art-grid-item-link &gt;&gt; nth=0"</span> }, <span class="pr">label</span>: <span class="s">"open"</span>,</span><span class="ln">      <span class="pr">waitFor</span>: { <span class="pr">ui</span>: <span class="s">"h1.object-title"</span> }, <span class="pr">cut</span>: <span class="n">600</span> },</span></span><span class="step" data-step="3"><span class="ln">    <span class="c">// The painting’s own zoom controls</span></span><span class="ln">    { <span class="pr">click</span>: { <span class="pr">ui</span>: <span class="s">"[aria-label=&#39;Zoom in&#39;]"</span> }, <span class="pr">label</span>: <span class="s">"zoom"</span> },</span><span class="ln">    { <span class="pr">click</span>: { <span class="pr">ui</span>: <span class="s">"[aria-label=&#39;Zoom in&#39;]"</span> } },</span></span><span class="step" data-step="4"><span class="ln">    { <span class="pr">click</span>: { <span class="pr">ui</span>: <span class="s">"[aria-label=&#39;Zoom out&#39;]"</span> }, <span class="pr">label</span>: <span class="s">"back"</span> },</span></span><span class="step" data-step="5"><span class="ln">    { <span class="pr">scroll</span>: { <span class="pr">ui</span>: <span class="s">"h3:has-text(&#39;Stories&#39;)"</span> }, <span class="pr">label</span>: <span class="s">"stories"</span>,</span><span class="ln">      <span class="pr">flicks</span>: <span class="n">2</span> },</span></span><span class="ln">  ],</span><span class="ln">};</span></code></pre>
+      </div>
+      <div class="player">
+        <div class="screen"><div class="frame">
+          <video src="media/website.mp4" poster="media/website.jpg" muted loop playsinline preload="metadata" aria-label="Rijksmuseum: searching the collection for the Night Watch, zooming in on the painting, and down to its stories"></video>
+        </div></div>
+        <div class="timeline"></div>
+      </div>
+    </div>
+    <p class="note pad">The scenario, shortened, and the take it recorded. Click a step to jump to it.</p>
+  </section>
+
+  <section>
+    <div class="head pad">
+      <h2>What a take gets</h2>
+      <p class="lg">Restrained defaults, so the product is what people watch.</p>
+    </div>
+    <!-- Pictograms: Carbon, Apache 2.0 -->
+    <dl class="grid facts">
+      <div><dt><svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M16,31.36C7.53,31.36,0.64,24.47,0.64,16 S7.53,0.64,16,0.64S31.36,7.53,31.36,16S24.47,31.36,16,31.36z M16,1.36C7.927,1.36,1.36,7.927,1.36,16 c0,8.072,6.567,14.64,14.64,14.64c8.072,0,14.64-6.567,14.64-14.64S24.072,1.36,16,1.36z M23.36,23h-0.72V9h0.721L23.36,23L23.36,23 z M11.36,23h-0.72V9h0.72V23z M17.36,21h-0.72V11h0.72V21z M8.36,20H7.64v-8h0.72V20z M26.36,19h-0.72v-6h0.721L26.36,19L26.36,19z M14.36,19h-0.72v-6h0.72V19z M20.36,17h-0.72v-2h0.721L20.36,17L20.36,17z M5.36,17H4.64v-2h0.72C5.36,15,5.36,17,5.36,17z"/></svg>Paced to the voice</dt><dd>Each narrated step waits for its line, so a new take always fits.</dd></div>
+      <div><dt><svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M16,29.3604c-4.5317,0-8.3599-3.8291-8.3599-8.3604v-10c0-4.5317,3.8281-8.3599,8.3599-8.3599s8.3604,3.8281,8.3604,8.3599v10c0,4.5312-3.8291,8.3604-8.3604,8.3604ZM15.6401,3.3687c-3.9824.1958-7.2803,3.6108-7.2803,7.6313v10c0,4.1416,3.499,7.6396,7.6401,7.6396s7.6396-3.498,7.6396-7.6396v-10c0-4.0205-3.2979-7.4355-7.2798-7.6313v3.3091c1.0005.2261,1.0005,1.4072,1.0005,1.8223v3c0,.415,0,1.5962-1.0005,1.8223v3.6777h-.7197v-3.6777c-1-.2261-1-1.4072-1-1.8223v-3c0-.415,0-1.5962,1-1.8223v-3.3091ZM16,7.3599c-.3374,0-.6401.0874-.6401,1.1401v3c0,1.0527.3027,1.1401.6401,1.1401s.6401-.0874.6401-1.1401v-3c0-1.0527-.3027-1.1401-.6401-1.1401Z"/></svg>A calm cursor</dt><dd>Eased, slightly curved moves and a soft click. macOS, minimal or Figma cursors.</dd></div>
+      <div><dt><svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M16 11.64H28V12.360000000000001H16z"/><path d="M16 5.64H28V6.359999999999999H16z"/><path d="M4.359,8.002c0-0.904,0.736-1.64,1.64-1.64h3.146L6.931,8.576L7.44,9.084l2.829-2.828c0.068-0.067,0.105-0.159,0.105-0.254 s-0.038-0.187-0.105-0.254L7.44,2.919L6.931,3.428l2.214,2.214H6c-1.301,0-2.36,1.059-2.36,2.36v4.5h0.72L4.359,8.002L4.359,8.002z"/><path d="M16 17.64H28V18.361H16z"/><path d="M31,0.64H13c-0.199,0-0.36,0.161-0.36,0.36v13.64H3c-1.301,0-2.36,1.059-2.36,2.36v8c0,1.302,1.059,2.36,2.36,2.36h3.777 l1.901,3.801l0.644-0.322l-2-4C7.261,26.717,7.136,26.64,7,26.64H3c-0.904,0-1.64-0.735-1.64-1.64v-8c0-0.904,0.736-1.64,1.64-1.64 h9.64v4.713C12.267,20.218,12,20.575,12,21s0.267,0.782,0.64,0.927V23c0,0.199,0.161,0.36,0.36,0.36h3.64V25 c0,0.904-0.736,1.64-1.64,1.64H9v0.721h6c1.301,0,2.36-1.059,2.36-2.36v-1.64H31c0.199,0,0.36-0.161,0.36-0.36V1 C31.36,0.801,31.199,0.64,31,0.64z M30.64,22.64H13.36V1.36h17.28V22.64z"/><circle cx="5" cy="21" r="1"/><circle cx="9" cy="21" r="1"/></svg>Captions</dt><dd>The narration, burned into the video, with .vtt and .srt beside it.</dd></div>
+      <div><dt><svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M23,27.36H1c-0.199,0-0.36-0.161-0.36-0.36V5c0-0.199,0.161-0.36,0.36-0.36h22 c0.199,0,0.36,0.161,0.36,0.36v6.375l7.459-4.331c0.11-0.064,0.248-0.066,0.36,0c0.111,0.064,0.181,0.183,0.181,0.312v17.321 c0,0.129-0.069,0.248-0.182,0.312c-0.11,0.063-0.249,0.063-0.36-0.002l-7.458-4.359V27C23.36,27.199,23.199,27.36,23,27.36z M1.36,26.64h21.28V20c0-0.129,0.069-0.248,0.182-0.312c0.11-0.063,0.25-0.063,0.36,0.002l7.458,4.359V7.98l-7.459,4.331 c-0.11,0.064-0.248,0.065-0.36,0C22.709,12.248,22.64,12.129,22.64,12V5.36H1.36V26.64z"/></svg>Camera</dt><dd>Zoom in on a step and ease back out, from two lines in the scenario.</dd></div>
+      <div><dt><svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M22,31.36H10v-0.72h5.64v-3.286c-4.995-0.19-9-4.313-9-9.354v-4h0.72v2.64h2.28V7 c0-3.507,2.853-6.36,6.36-6.36S22.36,3.493,22.36,7v9.64h2.279V14h0.721v4c0,5.04-4.006,9.163-9,9.354v3.286H22V31.36z M7.36,17.36 V18c0,4.764,3.876,8.64,8.64,8.64s8.64-3.876,8.64-8.64v-0.64h-2.28V18c0,3.507-2.854,6.36-6.36,6.36S9.64,21.507,9.64,18v-0.64 H7.36z M16,1.36c-3.11,0-5.64,2.53-5.64,5.64v11c0,3.11,2.53,5.64,5.64,5.64s5.64-2.529,5.64-5.64V7C21.64,3.89,19.11,1.36,16,1.36z"/></svg>A free local voice</dt><dd>Kokoro runs offline with no key. ElevenLabs when you want a studio voice.</dd></div>
+      <div><dt><svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M4.746,31.255L0.491,27l4.255-4.255l0.509,0.51L1.869,26.64H29c0.904,0,1.64-0.735,1.64-1.64v-9h0.721v9 c0,1.302-1.059,2.36-2.36,2.36H1.869l3.385,3.385L4.746,31.255z M1.36,16H0.64V7c0-1.301,1.059-2.36,2.36-2.36h27.131l-3.386-3.386 l0.51-0.509L31.509,5l-4.254,4.254l-0.51-0.509l3.386-3.386H3C2.096,5.36,1.36,6.096,1.36,7V16z"/></svg>Recorded again in CI</dt><dd>After each deploy, headless. A step that stops working fails the job. <a href="https://github.com/mariusroosendaal/recital/blob/main/docs/ci.md">CI guide</a></dd></div>
+    </dl>
+  </section>
+
+  <section class="figma">
+    <div class="head pad">
+      <h2>Adapters, for apps like Figma</h2>
+      <p class="lg">Some apps need more than selectors: a canvas, a plugin’s own window. An adapter teaches recital the app. Figma’s is built in: open a plugin in a real file, find layers by name, and record it at work, here narrated by an ElevenLabs voice. <a href="https://github.com/mariusroosendaal/recital/blob/main/docs/figma.md">Figma guide</a>, <a href="https://github.com/mariusroosendaal/recital/blob/main/docs/adapters.md">write an adapter</a></p>
+    </div>
+    <div class="grid split" data-take="figma">
+      <div class="file">
+<pre class="code" tabindex="0"><code><span class="ln"><span class="k">const</span> plugin = (selector) =&gt; ({ <span class="pr">plugin</span>: selector });</span><span class="ln"> </span><span class="ln"><span class="k">export default</span> {</span><span class="ln">  <span class="pr">file</span>: <span class="s">"https://www.figma.com/design/EuLO3NTXzr…"</span>,</span><span class="ln">  <span class="pr">plugin</span>: { <span class="pr">name</span>: <span class="s">"Data Mapper"</span> },</span><span class="ln">  <span class="pr">narrator</span>: { <span class="pr">provider</span>: <span class="s">"elevenlabs"</span>, <span class="pr">voice</span>: <span class="s">"Lily"</span> },</span><span class="ln">  <span class="pr">narration</span>: [</span><span class="ln">    { <span class="pr">at</span>: <span class="s">"add · open the form"</span>, <span class="pr">text</span>: <span class="s">"Start by adding…"</span> },</span><span class="ln">  ],</span><span class="ln">  <span class="pr">steps</span>: [</span><span class="step" data-step="0"><span class="ln">    { <span class="pr">click</span>: plugin(<span class="s">"role=button[name='Add data source']"</span>),</span><span class="ln">      <span class="pr">label</span>: <span class="s">"add · open the form"</span> },</span><span class="ln">    { <span class="pr">type</span>: SOURCE, <span class="pr">into</span>: plugin(<span class="s">"#data-source-url"</span>) },</span></span><span class="step" data-step="1"><span class="ln">    <span class="c">// A layer on the canvas, by its path</span></span><span class="ln">    { <span class="pr">click</span>: { <span class="pr">canvas</span>: <span class="s">"collection/art card"</span> } },</span><span class="ln">    { <span class="pr">click</span>: plugin(<span class="s">"role=button[name='Create mapping']"</span>) },</span></span><span class="step" data-step="2"><span class="ln">    { <span class="pr">click</span>: plugin(<span class="s">"role=button[name='Link component']"</span>) },</span><span class="ln">    { <span class="pr">click</span>: plugin(<span class="s">"text=/^title\\b/"</span>) },</span></span><span class="step" data-step="3"><span class="ln">    { <span class="pr">click</span>: plugin(<span class="s">"role=button[name='Save changes']"</span>) },</span></span><span class="step" data-step="4"><span class="ln">    { <span class="pr">click</span>: plugin(<span class="s">"role=button[name='Create copies']"</span>),</span><span class="ln">      <span class="pr">waitFor</span>: { <span class="pr">ui</span>: <span class="s">"text=/^Created/"</span> } },</span></span><span class="ln">  ],</span><span class="ln">};</span></code></pre>
+      </div>
+      <div class="player">
+        <div class="screen"><div class="frame">
+          <video src="media/figma-plugin-plain.mp4" poster="media/figma-plugin.jpg" muted loop playsinline preload="metadata" data-sound aria-label="Data Mapper, a Figma plugin: adding a data source, mapping it to a card and making a copy per record">
+            <track kind="captions" src="media/figma-plugin.vtt" srclang="en" label="English" default>
+          </video>
+          <p class="cc" aria-hidden="true" hidden><span></span></p>
+        </div></div>
+        <div class="timeline"></div>
+      </div>
+    </div>
+    <p class="note pad">Shortened from 31 steps. Turn the sound on to hear the voice.</p>
+  </section>
+
+  <section>
+    <div class="head pad">
+      <h2>Start</h2>
+      <p class="lg">Demos live in a folder of their own, beside your app.</p>
+    </div>
+    <div class="grid start">
+<pre class="term" tabindex="0"><code><span class="p">$ </span>npm i -D recitaljs
+<span class="p">$ </span>npx playwright install chromium
+<span class="p">$ </span>npx recital init      <span class="c"># an example scenario</span>
+<span class="p">$ </span>npx recital doctor    <span class="c"># checks ffmpeg, Chromium, the voice</span>
+<span class="p">$ </span>npx recital demo example</code></pre>
+      <div>
+        <p>Needs Node 20 or later and <code>ffmpeg</code>. Runs on macOS and Linux.</p>
+        <p>The take lands in <code>output/example/</code>. Add <code>narration</code> lines and run <code>narrate</code> for the voiced, captioned video. <a href="https://github.com/mariusroosendaal/recital/blob/main/docs/narration.md">Writing narration</a></p>
+        <p>Or let an agent write it: <code>npx recital skill</code> adds a skill that plans the demo, writes the scenario, checks the frames and writes the lines.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="pad"><span>MIT License</span><span>a project by <a href="https://marius.systems">Marius Roosendaal</a></span></footer>
+
+<script>
+  // Each take's steps, in seconds
+  const TAKES = {
+    // From the take's camera.steps.json
+    rijksmuseum: [
+      { label: "search", start: 0.801, end: 3.856 },
+      { label: "results", start: 3.856, end: 5.943 },
+      { label: "open", start: 5.943, end: 8.567 },
+      { label: "zoom", start: 8.567, end: 12.382 },
+      { label: "back", start: 12.382, end: 14.168 },
+      { label: "stories", start: 14.168, end: 17.987 },
+    ],
+    // From the narrated take's steps.json, its 31 steps grouped
+    figma: [
+      { label: "add", start: 0.801, end: 9.319 },
+      { label: "select", start: 9.319, end: 15.444 },
+      { label: "link", start: 15.444, end: 30.37 },
+      { label: "save", start: 30.37, end: 35.9 },
+      { label: "apply", start: 35.9, end: 45.772 },
+    ],
+  };
+  const SOUND_ON = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M1 5h3l4-4h1v14H8l-4-4H1z"/><path fill="none" stroke="currentColor" d="M10.5 5.5C11.2 6 11.5 6.8 11.5 8s-.3 2-1 2.5M12 3c1.5 1.3 2.5 3 2.5 5s-1 3.7-2.5 5"/></svg>';
+  const SOUND_OFF = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M1 5h3l4-4h1v14H8l-4-4H1z"/><path fill="none" stroke="currentColor" d="M11 6l4 4m0-4l-4 4"/></svg>';
+  const PAUSE = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4 3h2v10H4zm6 0h2v10h-2z"/></svg>';
+  const PLAY = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4 2.5v11L13 8z"/></svg>';
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // A damped spring as a CSS linear() easing, sampled until it settles within 0.1%
+  function spring({ stiffness, damping, mass = 1 }) {
+    const w0 = Math.sqrt(stiffness / mass);
+    const zeta = damping / (2 * Math.sqrt(stiffness * mass));
+    const wd = w0 * Math.sqrt(1 - zeta ** 2);
+    const at = (t) => 1 - Math.exp(-zeta * w0 * t) * (Math.cos(wd * t) + ((zeta * w0) / wd) * Math.sin(wd * t));
+    const s = -Math.log(0.001) / (zeta * w0);
+    const points = Array.from({ length: 61 }, (_, i) => (i === 60 ? 1 : +at((i / 60) * s).toFixed(4)));
+    return { easing: `linear(${points.join(", ")})`, ms: Math.round(s * 1000) };
+  }
+
+  // Slide each block in as it reaches the screen; blocks that arrive together are staggered
+  if (!still) {
+    if (CSS.supports("transition-timing-function", "linear(0, 1)")) {
+      const { easing, ms } = spring({ stiffness: 120, damping: 16 });
+      document.documentElement.style.setProperty("--spring", easing);
+      document.documentElement.style.setProperty("--spring-ms", `${ms}ms`);
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries
+          .filter((e) => e.isIntersecting)
+          .forEach((e, i) => {
+            e.target.style.setProperty("--delay", `${i * 80}ms`);
+            e.target.classList.add("in");
+            io.unobserve(e.target);
+          });
+      },
+      { rootMargin: "0px 0px -8% 0px" },
+    );
+    document
+      .querySelectorAll(".intro > h1, .intro > div > *, section > .head > *, section > .grid, section > .note")
+      .forEach((el) => {
+        el.classList.add("reveal");
+        io.observe(el);
+      });
+  }
+
+  document.querySelectorAll(".split[data-take]").forEach((split) => player(split, TAKES[split.dataset.take]));
+
+  function player(split, STEPS) {
+    const video = split.querySelector("video");
+    const timeline = split.querySelector(".timeline");
+    const code = [...split.querySelectorAll(".code .step")];
+
+    const segs = STEPS.map((s, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "seg";
+      b.style.setProperty("--w", s.end - s.start);
+      b.innerHTML = `<span>${s.label}</span>`;
+      b.setAttribute("aria-label", `Jump to the ${s.label} step`);
+      b.addEventListener("click", () => seek(i));
+      timeline.appendChild(b);
+      return b;
+    });
+    code.forEach((el) => el.addEventListener("click", () => seek(+el.dataset.step)));
+
+    // Paused by the visitor: stays paused when scrolled back into view
+    let held = false;
+    const play = () => video.play().catch(() => {});
+
+    // Reduced motion: the browser's own controls, and nothing plays by itself
+    if (still) video.controls = true;
+    else {
+      // Play/pause and sound, over the video
+      const ctls = document.createElement("div");
+      ctls.className = "ctls";
+      split.querySelector(".frame").append(ctls);
+
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "ctl";
+      const show = () => {
+        b.innerHTML = held ? PLAY : PAUSE;
+        b.setAttribute("aria-label", held ? "Play the video" : "Pause the video");
+      };
+      b.addEventListener("click", () => {
+        held = !held;
+        held ? video.pause() : play();
+        show();
+      });
+      show();
+      ctls.appendChild(b);
+
+      // A narrated take starts muted, with its captions on screen
+      if (video.hasAttribute("data-sound")) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "ctl";
+        const show = () => {
+          b.innerHTML = video.muted ? SOUND_OFF : SOUND_ON;
+          b.setAttribute("aria-label", video.muted ? "Turn the sound on" : "Turn the sound off");
+        };
+        b.addEventListener("click", () => {
+          video.muted = !video.muted;
+          if (!held) play();
+        });
+        video.addEventListener("volumechange", show);
+        show();
+        ctls.appendChild(b);
+      }
+
+      // Play while on screen
+      new IntersectionObserver(([e]) => (e.isIntersecting && !held ? play() : video.pause()), { threshold: 0.4 }).observe(video);
+    }
+
+    function seek(i) {
+      video.currentTime = STEPS[i].start;
+      if (!held) play();
+      update();
+    }
+
+    let current = -1;
+    function update() {
+      const t = video.currentTime;
+      STEPS.forEach((s, i) => segs[i].style.setProperty("--p", Math.max(0, Math.min(1, (t - s.start) / (s.end - s.start)))));
+      let i = STEPS.findIndex((s) => t >= s.start && t < s.end);
+      if (i === -1 && t >= STEPS.at(-1).end) i = STEPS.length - 1;
+      if (i === current) return;
+      current = i;
+      code.forEach((el) => el.classList.toggle("on", +el.dataset.step === i));
+      segs.forEach((el, j) => {
+        el.classList.toggle("on", j === i);
+        j === i ? el.setAttribute("aria-current", "step") : el.removeAttribute("aria-current");
+      });
+    }
+    function tick() {
+      update();
+      if (!video.paused) requestAnimationFrame(tick);
+    }
+    video.addEventListener("play", tick);
+    video.addEventListener("seeked", update);
+
+    // Captions: the track stays hidden and its cues show in .cc, styled like the burned ones
+    const track = video.textTracks[0];
+    const cc = split.querySelector(".cc");
+    if (track && cc) {
+      track.mode = "hidden";
+      track.addEventListener("cuechange", () => {
+        const text = [...(track.activeCues || [])].map((c) => c.text).join("\n");
+        cc.firstChild.textContent = text;
+        cc.hidden = !text;
+      });
+    }
+  }
+
+  const copy = document.getElementById("copy");
+  const copied = document.getElementById("copied");
+  let reset;
+  copy.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText("npm i -D recitaljs");
+    } catch {
+      // Blocked: select the command instead, to copy by hand
+      getSelection().selectAllChildren(copy.querySelector(".cmd"));
+      return;
+    }
+    copied.textContent = "Copied";
+    copy.classList.add("copied");
+    clearTimeout(reset);
+    reset = setTimeout(() => {
+      copy.classList.remove("copied");
+      copied.textContent = "";
+    }, 1500);
+  });
+</script>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "4279bc5cf9f9461fa6aa6887cdc89bfe"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>

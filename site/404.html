@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page not found · recital</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171414" media="(prefers-color-scheme: dark)">
+<!-- GitHub Pages serves this for any missing path, so links are root-relative to the project site -->
+<link rel="icon" href="/recital/favicon.svg" type="image/svg+xml">
+<style>
+  @font-face { font-family: "Switzer"; src: url("/recital/fonts/Switzer-Variable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+  :root {
+    --bg: #ffffff; --fg: #171414; --accent: #da1e28;
+    --sans: "Switzer", ui-sans-serif, system-ui, sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #171414; --fg: #f7f3f2; --accent: #fa4d56; color-scheme: dark; }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    /* The home page's intro: its title, then its text and link 32px apart at 1440px */
+    margin: 0; display: grid; place-content: center; gap: max(16px, 10.37px + 1.502vw); padding: 0 16px;
+    background: var(--bg); color: var(--fg); font: max(20px, 17.89px + 0.563vw)/1.2 var(--sans); letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* The home page's title: 42px at 375px wide, 72px at 1440px */
+  h1 { margin: 0; font: 300 max(42px, 31.4px + 2.82vw)/1 var(--sans); letter-spacing: -0.02em; text-wrap: balance; }
+  p { margin: 0; text-wrap: pretty; }
+  a { color: var(--accent); text-decoration: none; text-underline-offset: 0.15em; }
+  a:hover { text-decoration: underline; }
+  a:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+</style>
+</head>
+<body>
+  <h1>Page not found</h1>
+  <p>There's nothing at this address.</p>
+  <p><a href="/recital/">Back to recital</a></p>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "4279bc5cf9f9461fa6aa6887cdc89bfe"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>
