@@ -7,6 +7,8 @@
 /** @type {import("recitaljs").Scenario} */
 export default {
   url: "https://www.rijksmuseum.nl/en/collection",
+  // 8:5, a little taller than 16:9, for the site's player
+  viewport: { width: 1600, height: 1000 },
   speed: 1.25,
   pauses: 0.6,
   cursors: "macos",

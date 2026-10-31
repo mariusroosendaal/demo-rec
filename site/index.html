@@ -53,7 +53,6 @@
     /* A take's timeline fills with Red 60, under white labels, in both themes */
     --on-accent: #ffffff;
     --red: #da1e28;
-    --overlay: rgb(23 20 20 / 0.56);
     /* Code, like GitHub's theme in Carbon colors: Red 60, Blue 70, Red 60, Warm Gray 70 */
     --keyword: #da1e28;
     --string: #0043ce;
@@ -108,6 +107,8 @@
 
   /* ==== Base ==== */
   * { box-sizing: border-box; }
+  /* Safari on iOS gives buttons a 2px margin, which opens gaps between the timeline's steps */
+  button { margin: 0; }
   html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0;
@@ -185,10 +186,10 @@
   .code .c { color: var(--comment); }
 
   /* The screen takes the height the code leaves, so the timeline sits at the bottom; the
-     video, its captions and controls stay together in its middle */
+     video and its captions stay together in its middle */
   .player { display: flex; flex-direction: column; }
   .screen { flex: 1; display: flex; flex-direction: column; justify-content: center; background: var(--stage); }
-  .player video { display: block; width: 100%; aspect-ratio: 16 / 9; background: var(--active); }
+  .player video { display: block; width: 100%; aspect-ratio: 8 / 5; background: var(--active); }
   /* The take's .vtt, drawn like its burned-in captions (narration.js), in Switzer:
      sized to the video's width, 6% up from the bottom, on a translucent rounded box */
   .frame { position: relative; container-type: inline-size; }
@@ -204,7 +205,8 @@
     white-space: pre-line; text-wrap: balance; -webkit-font-smoothing: auto;
   }
   /* The steps, as wide as they last: each fills with red as it plays, and its
-     label turns white where the fill has reached */
+     label turns white where the fill has reached: a white copy over it, clipped to the
+     fill (clipping the text to a gradient drops the ellipsis in Firefox) */
   .timeline { display: flex; border-top: 1px solid var(--line); }
   .seg {
     position: relative; isolation: isolate; flex: var(--w); min-width: 0;
@@ -218,22 +220,22 @@
   }
   .seg span {
     display: block; padding: var(--space-s) var(--space-2xs) var(--space-2xs) 0.5rem;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    color: transparent; -webkit-background-clip: text; background-clip: text;
-    background-image: linear-gradient(90deg, var(--on-accent) calc(var(--p, 0) * 100%), var(--fg) 0);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--fg);
   }
-  /* Play/pause and sound, over the video's bottom right */
-  .ctls { position: absolute; right: 20px; bottom: 20px; display: flex; gap: 4px; }
+  .seg span + span {
+    position: absolute; inset: 0; color: var(--on-accent);
+    clip-path: inset(0 calc(100% - var(--p, 0) * 100%) 0 0);
+  }
+  /* Play/pause and sound end the timeline, off the picture, where they can't cover the
+     captions or the app's own controls */
+  .ctls { display: contents; }
   .ctl {
-    display: grid; place-items: center; width: 24px; height: 24px;
-    padding: 0; border: 0; background: var(--overlay); color: #fff; cursor: pointer;
-    -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
-    transition: background 160ms, transform 120ms;
+    flex: 0 0 var(--space-l); display: grid; place-items: center;
+    padding: 0; border: 0; background: none; color: var(--fg); cursor: pointer;
   }
-  .ctl:active { transform: scale(0.88); }
-  .ctl:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
-  .ctl svg { width: 16px; height: 16px; animation: pop 250ms cubic-bezier(0.34, 1.56, 0.64, 1); }  /* px: the 16px glyphs sit on whole pixels */
-  @keyframes pop { from { opacity: 0; transform: scale(0.5); } }
+  .ctl + .ctl { border-left: 1px solid var(--line); }
+  .ctl:focus-visible { outline: 2px solid var(--fg); outline-offset: -2px; }
+  .ctl svg { width: 16px; height: 16px; }  /* px: the 16px glyphs sit on whole pixels */
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
   /* What a take gets */
@@ -273,6 +275,11 @@
   }
   @media (max-width: 560px) {
     .facts { grid-template-columns: 1fr; }
+    /* The steps get the whole width; play and sound share a row under them */
+    .timeline { flex-wrap: wrap; }
+    .seg:has(+ .ctls) { border-right: 0; }
+    .ctls { display: flex; flex-basis: 100%; border-top: 1px solid var(--line); }
+    .ctl { flex: 1; height: 44px; }
   }
   /* Hover, only where a pointer hovers: on touch it would stay on after a tap */
   @media (hover: hover) {
@@ -281,7 +288,7 @@
     .install:hover { opacity: 0.85; }
     .code .step:hover { background: var(--active); }
     .seg:hover span { text-decoration: underline; text-decoration-color: var(--fg); }
-    .ctl:hover { background: rgb(23 20 20 / 0.75); }
+    .ctl:hover { background: var(--active); }
   }
   @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; animation: none !important; }
@@ -292,7 +299,7 @@
 
 <header class="bar pad lg">
   <a href="./" aria-label="recital home">recital</a>
-  <a href="https://github.com/mariusroosendaal/recital">github</a>
+  <a href="https://github.com/mariusroosendaal/recital">Github</a>
 </header>
 
 <main>
@@ -391,20 +398,20 @@
   const TAKES = {
     // From the take's camera.steps.json
     rijksmuseum: [
-      { label: "search", start: 0.801, end: 3.856 },
-      { label: "results", start: 3.856, end: 5.943 },
-      { label: "open", start: 5.943, end: 8.567 },
-      { label: "zoom", start: 8.567, end: 12.382 },
-      { label: "back", start: 12.382, end: 14.168 },
-      { label: "stories", start: 14.168, end: 17.987 },
+      { label: "search", start: 0.801, end: 3.884 },
+      { label: "results", start: 3.884, end: 6.348 },
+      { label: "open", start: 6.348, end: 9.138 },
+      { label: "zoom", start: 9.138, end: 13.075 },
+      { label: "back", start: 13.075, end: 14.921 },
+      { label: "stories", start: 14.921, end: 19.034 },
     ],
     // From the narrated take's steps.json, its 31 steps grouped
     figma: [
-      { label: "add", start: 0.801, end: 9.319 },
-      { label: "select", start: 9.319, end: 15.444 },
-      { label: "link", start: 15.444, end: 30.37 },
-      { label: "save", start: 30.37, end: 35.9 },
-      { label: "apply", start: 35.9, end: 45.772 },
+      { label: "add", start: 0.802, end: 9.303 },
+      { label: "select", start: 9.303, end: 15.398 },
+      { label: "link", start: 15.398, end: 30.176 },
+      { label: "save", start: 30.176, end: 35.66 },
+      { label: "apply", start: 35.66, end: 45.116 },
     ],
   };
   const SOUND_ON = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M1 5h3l4-4h1v14H8l-4-4H1z"/><path fill="none" stroke="currentColor" d="M10.5 5.5C11.2 6 11.5 6.8 11.5 8s-.3 2-1 2.5M12 3c1.5 1.3 2.5 3 2.5 5s-1 3.7-2.5 5"/></svg>';
@@ -463,7 +470,7 @@
       b.type = "button";
       b.className = "seg";
       b.style.setProperty("--w", s.end - s.start);
-      b.innerHTML = `<span>${s.label}</span>`;
+      b.innerHTML = `<span>${s.label}</span><span aria-hidden="true">${s.label}</span>`;
       b.setAttribute("aria-label", `Jump to the ${s.label} step`);
       b.addEventListener("click", () => seek(i));
       timeline.appendChild(b);
@@ -478,10 +485,10 @@
     // Reduced motion: the browser's own controls, and nothing plays by itself
     if (still) video.controls = true;
     else {
-      // Play/pause and sound, over the video
+      // Play/pause and sound, after the steps
       const ctls = document.createElement("div");
       ctls.className = "ctls";
-      split.querySelector(".frame").append(ctls);
+      timeline.append(ctls);
 
       const b = document.createElement("button");
       b.type = "button";
