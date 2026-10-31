@@ -39,8 +39,8 @@ test("records the self-test", { timeout: 300_000 }, () => {
   assert.equal(phone.width, 1600);
 
   const steps = JSON.parse(fs.readFileSync(path.join(out, "take.steps.json"), "utf8"));
-  assert.equal(steps.length, 6);
-  assert.deepEqual(steps.map((s) => s.skipped), [false, false, false, true, false, false]);
+  assert.equal(steps.length, 7);
+  assert.deepEqual(steps.map((s) => s.skipped), [false, false, false, true, false, false, false]);
   steps.forEach((s, i) => {
     assert.ok(s.end >= s.start, `step ${s.step} ends before it starts`);
     if (i) assert.ok(s.start >= steps[i - 1].start, `step ${s.step} starts before the one before`);
