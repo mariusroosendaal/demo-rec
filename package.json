@@ -1,6 +1,6 @@
 {
   "name": "recitaljs",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Narrated demo videos of anything in a browser, from a script; Figma plugins built in",
   "keywords": ["demo", "video", "screencast", "narration", "playwright", "figma", "figma-plugin", "tts"],
   "author": "Marius Roosendaal",
