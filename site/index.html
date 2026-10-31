@@ -251,7 +251,10 @@
   }
   .term .p, .term .c { color: var(--comment); }
   .term .p { user-select: none; }
-  .start p { margin: 0; }
+  /* Beside the commands: what they need and what comes next, set like the facts above */
+  .next { display: grid; gap: var(--space-s); margin: 0; }
+  .next dd { margin: var(--space-2xs) 0 0; color: var(--muted); text-wrap: pretty; }
+  .next code { color: var(--fg); }
 
   /* A line under a take */
   .note { margin: var(--space-xs) 0 0; color: var(--muted); text-wrap: balance; }
@@ -382,11 +385,11 @@
 <span class="p">$ </span>npx recital init      <span class="c"># an example scenario</span>
 <span class="p">$ </span>npx recital doctor    <span class="c"># checks ffmpeg, Chromium, the voice</span>
 <span class="p">$ </span>npx recital demo example</code></pre>
-      <div>
-        <p>Needs Node 20 or later and <code>ffmpeg</code>. Runs on macOS and Linux.</p>
-        <p>The take lands in <code>output/example/</code>. Add <code>narration</code> lines and run <code>narrate</code> for the voiced, captioned video. <a href="https://github.com/mariusroosendaal/recital/blob/main/docs/narration.md">Writing narration</a></p>
-        <p>Or let an agent write it: <code>npx recital skill</code> adds a skill that plans the demo, writes the scenario, checks the frames and writes the lines.</p>
-      </div>
+      <dl class="next">
+        <div><dt>Needs</dt><dd>Node 20 or later and <code>ffmpeg</code>, on macOS or Linux.</dd></div>
+        <div><dt>Then give it a voice</dt><dd>The take lands in <code>output/example/</code>. Add <code>narration</code> lines and run <code>npx recital narrate example</code> for the voiced, captioned video. <a href="https://github.com/mariusroosendaal/recital/blob/main/docs/narration.md">Writing narration</a></dd></div>
+        <div><dt>Or let an agent write it</dt><dd><code>npx recital skill</code> adds a skill that plans the demo, writes the scenario, checks the frames and writes the lines.</dd></div>
+      </dl>
     </div>
   </section>
 </main>

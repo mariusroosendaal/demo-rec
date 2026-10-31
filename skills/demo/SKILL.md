@@ -21,7 +21,7 @@ Read these before writing a scenario; they're in the installed package:
 - `node_modules/recitaljs/docs/figma.md`: Figma plugins, through the built-in Figma adapter
   (`file`, `plugin`, `canvas` targets).
 - `node_modules/recitaljs/docs/adapters.md`: an adapter of your own, for an app whose canvas or
-  windows `ui` and `frame` targets can't reach. Most apps don't need one.
+  windows `ui` and `frame` targets can't reach.
 - `node_modules/recitaljs/docs/ci.md`: recording again in CI after each deployment.
 
 ## Setup
@@ -49,8 +49,9 @@ work around the sandbox.
 
 ## The workflow
 
-1. **Plan the demo.** One task, start to finish, in 3 to 6 steps and 15 to 45 seconds. Settle
-   what the viewer should see and in what state the app starts. Draft the narration now, by
+1. **Plan the demo.** A task start to finish, a tour of a site or app, or one new feature, in
+   3 to 6 narrated steps and 15 to 45 seconds. Settle what the viewer should see and in what
+   state the app starts. Draft the narration now, by
    the rules below: it is the plan, and each line becomes a labelled step.
 
 2. **See the page.** Write the scenario with its `url` and one step, `{ hold: 500 }`, then:
@@ -92,8 +93,8 @@ the user wants the demos kept current, offer the CI workflow in `docs/ci.md`.
 
 ## The narration
 
-The lines are also the subtitles, and many viewers read them in a second language. Plain,
-short, in the product's own words. The shape:
+The lines are also the subtitles. Plain, short, in the product's own words. A task has this
+shape; narration.md has the shapes of a tour and a feature:
 
 ```
 Start by <what the product needs from you>.
@@ -106,7 +107,7 @@ Finally, click <Button>, and <what happens>.
 - Sequence with "Start by", "Next", "Then", "Finally". A line that only describes what the
   screen shows needs no connector.
 - Name the choice, not the value picked: "Next, choose how to sort them.", not "sort by name".
-- Click, then result, in one sentence. Close on what the viewer gains.
+- Action, then result, in one sentence. Close on what the viewer gains.
 - Say labels exactly as the screen shows them; drop counts that change.
 - Each line is a whole sentence. About 2.5 words a second; shorten a line rather than speed up
   the voice.
